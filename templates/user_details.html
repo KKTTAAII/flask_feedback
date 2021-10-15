@@ -1,0 +1,33 @@
+{% extends 'base.html' %} 
+{%block title%}{%endblock%}
+{% block content %}
+<h1>{{user.username}}'s Information</h1>
+<form action="/users/{{user.username}}/delete" method="POST">
+    <button class="label label-danger">Delete User</button>
+</form>
+<div>
+    <p><span>First Name:</span>{{user.first_name}}</p>
+    <p><span>Last Name:</span>{{user.last_name}}</p>
+    <p><span>Email:</span>{{user.email}}</p>
+</div>
+
+<div>
+    <ul>
+        {%for feedback in feedbacks%}
+        <li>
+            <a href="/feedback/{{feedback.id}}/update">
+            {{feedback.title}}
+            </a>
+            <form style="display:inline;" action="/feedback/{{feedback.id}}/delete" method="POST">
+                <button class="btn btn-danger btn-xs" id="trash"><i class="fas fa-trash"></i></button>
+            </form>
+            <p>{{feedback.content}}</p>
+        </li>
+        {%endfor%}
+    </ul>
+</div>
+
+<form action="/users/{{user.username}}/feedback/add">
+    <button class="btn btn-success mt-3">Add feedback</button>
+</form>
+{% endblock %}

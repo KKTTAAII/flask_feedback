@@ -1,0 +1,19 @@
+{% extends 'base.html' %} 
+{%block title%}{%endblock%}
+{% block content %}
+<h1>{{feedback.title}}</h1>
+<p>{{feedback.content}}</p>
+<button class="btn btn-success mt-3" id="editBtn">Edit feedback</button>
+<div class="edit_form">
+    <form method="POST">
+        {{ form.hidden_tag() }} {% for field in form if field.widget.input_type !=
+        'hidden'%}
+        <p class="mb-0 mt-3">{{field.label}} {{field(required=False)}}</p>
+        <small class="form-text-danger text-danger">
+          {% for err in field.errors %} {{err}} {%endfor%}
+        </small>
+        {%endfor%}
+        <button class="btn btn-success mt-3">Update</button>
+      </form>
+</div>
+{% endblock %}

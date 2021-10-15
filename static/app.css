@@ -1,0 +1,8 @@
+.edit_form {
+    display: none;
+}
+
+#trash {
+    width: 5px;
+    height: 5px;
+}
