@@ -16,6 +16,13 @@ db.create_all()
 
 toolbar = DebugToolbarExtension(app)
 
+# @app.before_request
+# def check_logged_in():
+#     if 'username' not in session and request.endpoint not in ('register','login', 'logout', '/'):
+#         flash("Please login first!", "danger")
+#         return redirect("/")
+
+
 @app.route("/")
 def main_page():
     return redirect("/register")
@@ -57,20 +64,20 @@ def log_in():
 
 @app.route("/logout")
 def logout_user():
-    session.pop('username')
+    session.pop("username")
     flash("Goodbye!", "info")
     return redirect("/")
 
-#######users route########
+#######users routes########
 
 @app.route("/users/<username>")
 def show_user_page(username):
-    if 'username' not in session:
+    if "username" not in session:
         flash("Please login first!", "danger")
         return redirect("/")
 
-    current_user = session['username']
-    user = User.query.filter_by(username=current_user).first()
+    current_user = session["username"]
+    user = User.query.filter_by(username=current_user).first_or_404()
     feedbacks = Feedback.query.filter_by(username=current_user).all()
 
     if username != session["username"]: ##try to refactor the code but the result is wrong
@@ -83,25 +90,31 @@ def show_user_page(username):
 def delete_user(username):
     """Delete user"""
     current_user = session["username"]
-    if 'username' not in session:
+
+    if "username" not in session:
         flash("Please login first!", "danger")
         return redirect("/")
 
-    user = User.query.filter_by(username=username).first()
+    if username != current_user: ##try to refactor the code but the result is wrong
+        flash("Sorry, you can't delete another user", "danger")
+        return redirect(f"/users/{current_user}")
+
+    user = User.query.filter_by(username=username).first_or_404()
     db.session.delete(user)
     db.session.commit()
-    session.pop('username')
+    session.pop("username")
     flash("User has been deleted", "success")
     return redirect("/")
 
 @app.route("/users/<username>/feedback/add", methods=["GET", "POST"])
 def add_feedback(username):
-    if 'username' not in session:
+    
+    if "username" not in session:
         flash("Please login first!", "danger")
         return redirect("/")
 
     form = FeedbackForm()
-    current_user = session['username']
+    current_user = session["username"]
     user = User.query.filter_by(username=current_user).first()
 
     if username != session["username"]: ##try to refactor the code but the result is wrong
@@ -125,9 +138,11 @@ def update_feedback(feedback_id):
     feedback = Feedback.query.get_or_404(feedback_id)
     form = FeedbackForm(obj=feedback)
     user = feedback.username
-    if 'username' not in session:
+    
+    if "username" not in session:
         flash("Please login first!", "danger")
         return redirect("/")
+    
     if user != session["username"]: ##try to refactor the code but the result is wrong
         flash("Sorry, you can't update another user's feedback", "danger")
         return redirect(f"/users/{user}")
@@ -145,12 +160,18 @@ def update_feedback(feedback_id):
 def delete_feedback(feedback_id):
     feedback = Feedback.query.get_or_404(feedback_id)
     user = feedback.username
-    if 'username' not in session:
+    
+    if "username" not in session:
         flash("Please login first!", "danger")
         return redirect("/")
+
     if user != session["username"]: ##try to refactor the code but the result is wrong
         flash("Sorry, you can't delete another user's feedback", "danger")
         return redirect(f"/users/{user}")
     db.session.delete(feedback)
     db.session.commit()
     return redirect(f"/users/{user}")
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404

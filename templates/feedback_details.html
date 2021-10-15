@@ -1,5 +1,5 @@
 {% extends 'base.html' %} 
-{%block title%}{%endblock%}
+{%block title%}Feedback Details{%endblock%}
 {% block content %}
 <h1>{{feedback.title}}</h1>
 <p>{{feedback.content}}</p>
@@ -9,7 +9,7 @@
         {{ form.hidden_tag() }} {% for field in form if field.widget.input_type !=
         'hidden'%}
         <p class="mb-0 mt-3">{{field.label}} {{field(required=False)}}</p>
-        <small class="form-text-danger text-danger">
+        <small class="form-text-danger text-danger mt-0">
           {% for err in field.errors %} {{err}} {%endfor%}
         </small>
         {%endfor%}

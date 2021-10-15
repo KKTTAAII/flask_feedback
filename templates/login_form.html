@@ -1,5 +1,5 @@
 {% extends 'base.html' %} 
-{%block title%}{%endblock%}
+{%block title%}Login form{%endblock%}
 {% block content %}
 <div>
     <h1>Login</h1>
@@ -14,6 +14,7 @@
       {% for err in field.errors %} {{err}} {%endfor%}
     </small>
     {%endfor%}
+    <br>
     <button class="btn btn-success mt-3">Submit</button>
   </form>
 </div>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %} 
-{%block title%}{%endblock%}
+{%block title%}Feedback form{%endblock%}
 {% block content %}
 <h1>{{user.username}}'s feedback</h1>
 
@@ -12,6 +12,7 @@
           {% for err in field.errors %} {{err}} {%endfor%}
         </small>
         {%endfor%}
+        <br>
         <button class="btn btn-success mt-3">Submit</button>
       </form>
 </div>

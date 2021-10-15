@@ -12,6 +12,7 @@ def connect_db(app):
     db.init_app(app)
 
 class User(db.Model):
+    """Create User table"""
     __tablename__ = "users"
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -50,6 +51,7 @@ class User(db.Model):
             return False
 
 class Feedback(db.Model):
+    """Create Feedback table"""
     __tablename__ = "feedbacks"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
