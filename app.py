@@ -1,3 +1,4 @@
+from pdb import set_trace
 from flask import Flask, render_template, redirect, session, flash, request
 from flask_debugtoolbar import DebugToolbarExtension
 from models import Feedback, connect_db, db, User
@@ -16,22 +17,24 @@ db.create_all()
 
 toolbar = DebugToolbarExtension(app)
 
-# @app.before_request
-# def check_logged_in():
-#     if 'username' not in session and request.endpoint not in ('register','login', 'logout', '/'):
-#         flash("Please login first!", "danger")
-#         return redirect("/")
-
+@app.before_request
+def check_logged_in():
+    """Check if the user is logged in"""
+    if "username" not in session and request.endpoint not in ("main_page", "register", "log_in", "logout_user"):
+        flash("Please login first!", "danger")
+        return redirect("/")
 
 @app.route("/")
 def main_page():
+    """Direct user to the register form"""
     return redirect("/register")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """Show register form and create a new user"""
     form = RegisterForm()
     if form.validate_on_submit():
-        data = {k: v for k, v in form.data.items() if k not in ["csrf_token", "username", "password"]}
+        data = {k: v for k, v in form.data.items() if k not in ["csrf_token", "username", "password", "page_not_found"]}
         username = form.username.data
         password = form.password.data
         username_password= User.register(username, password)
@@ -42,7 +45,7 @@ def register():
         except IntegrityError:
             form.username.errors.append("Username taken.  Please pick another")
             return redirect("/register")
-        session['username'] = new_user.username
+        session["username"] = new_user.username
         flash("Welcome! Successfully Created Your Account!", "success")
         return redirect(f"/users/{new_user.username}")
     else:
@@ -50,6 +53,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def log_in():
+    """Show log in form and validate the username and password"""
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
@@ -59,11 +63,14 @@ def log_in():
             flash(f"Welcome Back, {user.username}!", "info")
             session['username'] = user.username
             return redirect(f"/users/{user.username}")
+        else:
+            return redirect("/register")
     else:
         return render_template("login_form.html", form=form)
 
 @app.route("/logout")
 def logout_user():
+    """Log user out"""
     session.pop("username")
     flash("Goodbye!", "info")
     return redirect("/")
@@ -72,9 +79,8 @@ def logout_user():
 
 @app.route("/users/<username>")
 def show_user_page(username):
-    if "username" not in session:
-        flash("Please login first!", "danger")
-        return redirect("/")
+    """Show the user's info and prevent user from seeing another 
+    user's info by typing the username in the URL manually"""
 
     current_user = session["username"]
     user = User.query.filter_by(username=current_user).first_or_404()
@@ -88,12 +94,8 @@ def show_user_page(username):
 
 @app.route("/users/<username>/delete", methods=["POST"])
 def delete_user(username):
-    """Delete user"""
+    """Delete user and prevent the user from delete another user"""
     current_user = session["username"]
-
-    if "username" not in session:
-        flash("Please login first!", "danger")
-        return redirect("/")
 
     if username != current_user: ##try to refactor the code but the result is wrong
         flash("Sorry, you can't delete another user", "danger")
@@ -108,10 +110,8 @@ def delete_user(username):
 
 @app.route("/users/<username>/feedback/add", methods=["GET", "POST"])
 def add_feedback(username):
-    
-    if "username" not in session:
-        flash("Please login first!", "danger")
-        return redirect("/")
+    """Show feedback form and prevent user from 
+    adding feedback using another user's account"""
 
     form = FeedbackForm()
     current_user = session["username"]
@@ -135,13 +135,12 @@ def add_feedback(username):
 
 @app.route("/feedback/<feedback_id>/update", methods=["GET", "POST"])
 def update_feedback(feedback_id):
+    """Show update feedback form and prevent 
+    the user from updating another user's feedback"""
+
     feedback = Feedback.query.get_or_404(feedback_id)
     form = FeedbackForm(obj=feedback)
     user = feedback.username
-    
-    if "username" not in session:
-        flash("Please login first!", "danger")
-        return redirect("/")
     
     if user != session["username"]: ##try to refactor the code but the result is wrong
         flash("Sorry, you can't update another user's feedback", "danger")
@@ -158,16 +157,14 @@ def update_feedback(feedback_id):
 
 @app.route("/feedback/<feedback_id>/delete", methods=["POST"])
 def delete_feedback(feedback_id):
+    """Delete feedback and prevent the user from deleting another user's feedback"""
     feedback = Feedback.query.get_or_404(feedback_id)
     user = feedback.username
-    
-    if "username" not in session:
-        flash("Please login first!", "danger")
-        return redirect("/")
 
     if user != session["username"]: ##try to refactor the code but the result is wrong
         flash("Sorry, you can't delete another user's feedback", "danger")
         return redirect(f"/users/{user}")
+
     db.session.delete(feedback)
     db.session.commit()
     return redirect(f"/users/{user}")
